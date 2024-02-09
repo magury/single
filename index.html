@@ -122,12 +122,9 @@
             pos: 200 + Math.random() * canvas.width - 200, init: canvas.height, color: `hsla(${color.hue},100%,${color.brightness}%,${color.alpha})`,
         })
     }
-    !window.document.hidden &&
         setInterval(() => {
-
-            line()
-            lineTick()
-
+                   !window.document.hidden &&
+            (line() || lineTick())
         }, 500);
 </script>
 </body>
