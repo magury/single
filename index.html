@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <audio autoplay="" loop="true">
+        <source src="firework.mp3">
+    </audio>
+</body>
+<script>
+    window.$canvas = new Function()
+    window.$canvas.particles = Array(0)
+    window.$canvas.lines = Array(0)
+    document.documentElement.style.overflow = 'hidden';
+    const canvas = document.createElement('canvas')
+    document.body.appendChild(canvas)
+    // const h1 = document.createElement('h1')
+    const context = canvas.getContext('2d')
+    const clearCanvas = () => {
+        context.fillStyle = '#000000'
+        context.fillRect(0, 0, canvas.width, canvas.height)
+    }
+    const settingSize = (callback) => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        callback && callback()
+    }
+    const draw = ({ clientX: x, clientY: y }) => {
+        if (window.$canvas.frameId)
+            cancelAnimationFrame(window.$canvas.frameId)
+        const count = Array(100).fill(0)
+        const radius = 10
+        let hue = Math.random() * 360;
+        let hueVariance = 60;
+        count.map((item, index) => {
+            const angle = 360 / count.length * index
+            const radians = angle * Math.PI / 180
+            const speed = (Math.random() * 3) + 0.4
+            const p = {
+                x, y, radians, radius: speed, size: 2,
+                hue: Math.floor(Math.random() * ((hue + hueVariance) - (hue - hueVariance))) + (hue - hueVariance),
+                brightness: Math.floor(Math.random() * 21) + 50,
+                alpha: (Math.floor(Math.random() * 60) + 40) / 100,
+                speed
+            }
+            window.$canvas.particles.push(p)
+        })
+    }
+    async function tick() {
+        context.fillText("单身狗:高守亚除夕快乐！！", window.innerWidth / 2, window.innerHeight / 2)
+        context.font = "120px Arial";
+        context.textAlign = 'center'
+        context.globalCompositeOperation = 'destination-out'
+        context.fillStyle = 'rgba(0,0,0,0.1)'
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        context.globalCompositeOperation = 'lighter'
+        clearCanvas()
+        for (let i = 0; i < window.$canvas.particles.length; i++) {
+            const item = window.$canvas.particles[i]
+            item.x = item.x + Math.cos(item.radians) * item.radius
+            item.y = item.y + Math.sin(item.radians) * item.radius + .8
+            item.radius *= 1 - item.speed / 90
+            item.alpha -= 0.005
+            if (item.x < 0 || item.y < 0 || item.x > canvas.width || item.y > canvas.height || item.alpha <= 0) {
+                window.$canvas.particles.splice(i, 1)
+                continue
+            }
+            context.beginPath()
+            context.arc(item.x, item.y, item.size, 0, Math.PI * 2, false)
+            context.closePath()
+            context.fillStyle = `hsla(${item.hue},100%,${item.brightness}%,${item.alpha})`
+            context.fill()
+        }
+        window.$canvas.frameId = requestAnimationFrame(tick)
+    }
+    settingSize(clearCanvas)
+    window.addEventListener('resize', () => { settingSize(clearCanvas) })
+    document.addEventListener('click', (e) => {
+        draw(e)
+        tick()
+    })
+    const lineTick = () => {
+        for (let i = 0; i < window.$canvas.lines.length; i++) {
+            let item = window.$canvas.lines[i]
+            if (item.target >= item.init) {
+                window.$canvas.lines.splice(i, 1)
+                const event = {
+                    clientX: item.pos, clientY: item.init - 100
+                }
+                draw(event)
+                tick()
+                continue
+            }
+            context.moveTo(item.pos, item.init)
+            context.lineTo(item.pos, item.init - 100)
+            context.lineWidth = 3
+            context.strokeStyle = item.color
+            context.stroke()
+            item.init -= 5
+        }
+
+        window.$canvas.tvId = requestAnimationFrame(lineTick)
+    }
+    const line = () => {
+
+        if (window.$canvas.tvId)
+            cancelAnimationFrame(window.$canvas.tvId)
+        let hue = Math.random() * 360;
+        let hueVariance = 60;
+        const color = {
+            hue: Math.floor(Math.random() * ((hue + hueVariance) - (hue - hueVariance))) + (hue - hueVariance),
+            brightness: Math.floor(Math.random() * 21) + 50,
+            alpha: (Math.floor(Math.random() * 60) + 40) / 100,
+        }
+        window.$canvas.lines.push({
+            target: 200 + Math.random() * 500,
+            pos: 200 + Math.random() * canvas.width - 200, init: canvas.height, color: `hsla(${color.hue},100%,${color.brightness}%,${color.alpha})`,
+        })
+    }
+    !window.document.hidden &&
+        setInterval(() => {
+
+            line()
+            lineTick()
+
+        }, 500);
+</script>
+</body>
+
+</html>
